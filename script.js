@@ -232,7 +232,7 @@ async function renderAdminTable() {
     tableDiv.innerHTML = '<p>Загрузка данных из Google...</p>';
     
     try {
-        // Загружаем данные из Google Sheets
+        // Загружаем данные ТОЛЬКО из Google
         const response = await fetch(GOOGLE_SCRIPT_URL);
         const data = await response.json();
         
@@ -248,7 +248,7 @@ async function renderAdminTable() {
         html += '<table>';
         html += '<thead><tr>';
         
-        // Показываем только нужные столбцы (без времени сохранения)
+        // Показываем все столбцы кроме "Время сохранения"
         for (let i = 0; i < headers.length; i++) {
             if (headers[i] !== 'Время сохранения') {
                 html += `<th>${headers[i]}</th>`;
@@ -256,24 +256,43 @@ async function renderAdminTable() {
         }
         html += '</tr></thead><tbody>';
         
-        for (let row of rows) {
-            if (row[0] && row[0] !== '') {  // Если есть имя сотрудника
-                html += '<tr>';
-                for (let i = 0; i < row.length; i++) {
-                    if (headers[i] !== 'Время сохранения') {
-                        let value = row[i] || '';
-                        if (value === 'выходной') {
-                            value = '<span style="color:red;font-weight:bold;">🚫 Выходной</span>';
-                        }
-                        html += `<td>${value}</td>`;
+        // Сортируем сотрудников по алфавиту
+        const filteredRows = rows.filter(row => row[0] && row[0] !== '');
+        filteredRows.sort((a, b) => a[0].localeCompare(b[0], 'ru'));
+        
+        for (let row of filteredRows) {
+            html += '<tr>';
+            for (let i = 0; i < row.length; i++) {
+                if (headers[i] !== 'Время сохранения') {
+                    let value = row[i] || '';
+                    if (value === 'выходной') {
+                        value = '<span style="color:red;font-weight:bold;">🚫 Выходной</span>';
                     }
+                    html += `<td>${value}</td>`;
                 }
-                html += '</tr>';
             }
+            html += '</tr>';
         }
         
-        html += '</tbody><table></div>';
+        html += '</tbody></table></div>';
         tableDiv.innerHTML = html;
+        
+        // Обновляем локальный массив (для других функций)
+        allEmployees = [];
+        for (let row of filteredRows) {
+            const schedule = {};
+            for (let i = 1; i < headers.length; i++) {
+                const day = headers[i];
+                if (day !== 'Время сохранения' && row[i]) {
+                    schedule[day] = row[i];
+                }
+            }
+            allEmployees.push({
+                fullName: row[0],
+                schedule: schedule
+            });
+        }
+        saveDataToStorage();
         
     } catch (error) {
         console.error('Ошибка загрузки из Google:', error);

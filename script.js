@@ -1,5 +1,7 @@
 // ========== ДАННЫЕ ==========
 const daysOfWeek = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
+// Адрес вашего Google Apps Script
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5CXxWZYGKe8zYG8JAIf5ANpRsqq1KWdZI-QBGuDI6rRwdxmxyfj7DDJ4jrEE8NX6I/exec';
 let allEmployees = [];     // Массив всех сотрудников
 let currentEmployee = null; // Текущий сотрудник для заполнения
 
@@ -98,7 +100,8 @@ function toggleDayOff(day) {
 }
 
 // ========== СОХРАНЕНИЕ РАСПИСАНИЯ ==========
-function saveSchedule() {
+// ========== СОХРАНЕНИЕ РАСПИСАНИЯ (В GOOGLE) ==========
+async function saveSchedule() {
     if (!currentEmployee) return;
     
     const schedule = {};
@@ -118,6 +121,54 @@ function saveSchedule() {
         }
     }
     
+    // Отправляем данные в Google Sheets
+    const dataToSend = {
+        fullName: currentEmployee,
+        schedule: schedule,
+        timestamp: new Date().toISOString()
+    };
+    
+    try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(dataToSend)
+        });
+        
+        console.log('Данные отправлены в Google Sheets');
+        
+        // Также сохраняем локально для быстрого доступа
+        const index = allEmployees.findIndex(e => e.fullName === currentEmployee);
+        if (index !== -1) {
+            allEmployees[index].schedule = schedule;
+        } else {
+            allEmployees.push({ fullName: currentEmployee, schedule: schedule });
+        }
+        
+        allEmployees.sort((a, b) => a.fullName.localeCompare(b.fullName, 'ru'));
+        saveDataToStorage();
+        
+        showPage('page3');
+    } catch (error) {
+        console.error('Ошибка при сохранении в Google:', error);
+        alert('Ошибка сохранения. Данные сохранены локально.');
+        
+        // Всё равно сохраняем локально
+        const index = allEmployees.findIndex(e => e.fullName === currentEmployee);
+        if (index !== -1) {
+            allEmployees[index].schedule = schedule;
+        } else {
+            allEmployees.push({ fullName: currentEmployee, schedule: schedule });
+        }
+        allEmployees.sort((a, b) => a.fullName.localeCompare(b.fullName, 'ru'));
+        saveDataToStorage();
+        showPage('page3');
+    }
+}
+    
     // Находим или добавляем сотрудника
     const index = allEmployees.findIndex(e => e.fullName === currentEmployee);
     if (index !== -1) {
@@ -131,7 +182,7 @@ function saveSchedule() {
     
     saveDataToStorage();
     showPage('page3');  // Переход на страницу "Сохранено"
-}
+
 
 // ========== СТРАНИЦА 3 → СТРАНИЦА 1 ==========
 function goToPage1() {
@@ -176,38 +227,58 @@ function showAdminTable() {
     renderAdminTable();
 }
 
-function renderAdminTable() {
+async function renderAdminTable() {
     const tableDiv = document.getElementById('adminTable');
+    tableDiv.innerHTML = '<p>Загрузка данных из Google...</p>';
     
-    if (allEmployees.length === 0) {
-        tableDiv.innerHTML = '<p style="text-align:center; padding:40px;">Нет данных. Ни один сотрудник ещё не заполнил расписание.</p>';
-        return;
-    }
-    
-    let html = '<div style="overflow-x:auto">';
-    html += '<table>';
-    html += '<thead><tr><th>Сотрудник</th>';
-    
-    for (let day of daysOfWeek) {
-        html += `<th>${getFullDayName(day)}</th>`;
-    }
-    html += '</tr></thead><tbody>';
-    
-    for (let emp of allEmployees) {
-        html += '<tr>';
-        html += `<td><strong>${emp.fullName}</strong></td>`;
-        for (let day of daysOfWeek) {
-            let value = emp.schedule[day] || 'не указано';
-            if (value === 'выходной') {
-                value = '<span style="color:red;font-weight:bold;">🚫 Выходной</span>';
-            }
-            html += `<td>${value}</td>`;
+    try {
+        // Загружаем данные из Google Sheets
+        const response = await fetch(GOOGLE_SCRIPT_URL);
+        const data = await response.json();
+        
+        if (!data || data.length <= 1) {
+            tableDiv.innerHTML = '<p style="text-align:center; padding:40px;">Нет данных. Ни один сотрудник ещё не заполнил расписание.</p>';
+            return;
         }
-        html += '</tr>';
+        
+        const headers = data[0];
+        const rows = data.slice(1);
+        
+        let html = '<div style="overflow-x:auto">';
+        html += '<table>';
+        html += '<thead><tr>';
+        
+        // Показываем только нужные столбцы (без времени сохранения)
+        for (let i = 0; i < headers.length; i++) {
+            if (headers[i] !== 'Время сохранения') {
+                html += `<th>${headers[i]}</th>`;
+            }
+        }
+        html += '</tr></thead><tbody>';
+        
+        for (let row of rows) {
+            if (row[0] && row[0] !== '') {  // Если есть имя сотрудника
+                html += '<tr>';
+                for (let i = 0; i < row.length; i++) {
+                    if (headers[i] !== 'Время сохранения') {
+                        let value = row[i] || '';
+                        if (value === 'выходной') {
+                            value = '<span style="color:red;font-weight:bold;">🚫 Выходной</span>';
+                        }
+                        html += `<td>${value}</td>`;
+                    }
+                }
+                html += '</tr>';
+            }
+        }
+        
+        html += '</tbody><table></div>';
+        tableDiv.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Ошибка загрузки из Google:', error);
+        tableDiv.innerHTML = '<p style="text-align:center; padding:40px; color:red;">Ошибка загрузки данных. Пожалуйста, обновите страницу.</p>';
     }
-    
-    html += '</tbody></table></div>';
-    tableDiv.innerHTML = html;
 }
 
 // ========== ЭКСПОРТ CSV (EXCEL) ==========

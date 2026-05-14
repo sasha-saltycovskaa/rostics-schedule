@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rostic's - Пожелания по расписанию</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- КНОПКА АДМИНИСТРАТОРА (правый верхний угол) -->
+<button id="adminBtn" class="admin-trigger">👑 Вход для администратора</button>
+
+<!-- МОДАЛЬНОЕ ОКНО ДЛЯ ВХОДА АДМИНА -->
+<div id="adminModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Вход для администратора</h2>
+        <label>Логин:</label>
+        <input type="text" id="adminLogin" placeholder="admin">
+        <label>Пароль:</label>
+        <input type="password" id="adminPassword" placeholder="****">
+        <button onclick="checkAdminLogin()">Войти</button>
+    </div>
+</div>
+
+<!-- ========== СТРАНИЦА 1 (ГЛАВНАЯ) ========== -->
+<div id="page1" class="page active">
+    <div class="center-box">
+        <h1>🍗 Rostic's</h1>
+        <h2>Пожелания по расписанию</h2>
+        
+        <div class="input-group">
+            <input type="text" id="employeeName" placeholder="Введите полное ФИО" autocomplete="off">
+            <button onclick="goToPage2()">Далее →</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== СТРАНИЦА 2 (ЗАПОЛНЕНИЕ РАСПИСАНИЯ) ========== -->
+<div id="page2" class="page">
+    <div class="container">
+        <h2>📅 Ваше расписание на неделю</h2>
+        <div id="scheduleForm"></div>
+        <button class="save-btn" onclick="saveSchedule()">💾 Сохранить</button>
+    </div>
+</div>
+
+<!-- ========== СТРАНИЦА 3 (СОХРАНЕНО) ========== -->
+<div id="page3" class="page">
+    <div class="center-box">
+        <div class="success-icon">✅</div>
+        <h2>Пожелания сохранены!</h2>
+        <button onclick="goToPage1()">← На главную</button>
+    </div>
+</div>
+
+<!-- ========== СТРАНИЦА АДМИНИСТРАТОРА (ТАБЛИЦА) ========== -->
+<div id="adminPage" class="page">
+    <div class="container">
+        <h2>📊 Таблица пожеланий сотрудников</h2>
+        <div id="adminTable"></div>
+        
+        <div class="admin-buttons">
+            <button onclick="downloadCSV()" class="btn-excel">📊 Скачать Excel (CSV)</button>
+            <button onclick="printTable()" class="btn-print">🖨️ Печатать</button>
+            <button onclick="resetAllData()" class="btn-reset">🗑️ Сбросить все данные </button>
+
+            <button onclick="logoutAdmin()" class="btn-logout">🚪 Выйти</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

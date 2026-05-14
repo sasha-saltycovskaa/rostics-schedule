@@ -4,11 +4,11 @@ let allEmployees = [];
 let currentEmployee = null;
 
 // Google Script URL (ЗАМЕНИТЕ НА ВАШ!)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/ВАШ_КЛЮЧ/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5CXxWZYGKe8zYG8JAIf5ANpRsqq1KWdZI-QBGuDI6rRwdxmxyfj7DDJ4jrEE8NX6I/exec';
 
 // Логин и пароль администратора
-const ADMIN_LOGIN = 'admin';
-const ADMIN_PASSWORD = '1234';
+const ADMIN_LOGIN = 'admin12';
+const ADMIN_PASSWORD = '5678';
 
 // ========== ЗАГРУЗКА ==========
 function loadData() {

@@ -250,13 +250,49 @@ function printTable() {
     window.print();
 }
 
-function resetAllData() {
-    if (confirm('Удалить все данные?')) {
-        allEmployees = [];
-        saveDataToStorage();
-        renderAdminTable();
-        alert('Данные удалены');
+async function resetAllData() {
+    // Первое подтверждение
+    const confirmReset = confirm(
+        '⚠️ ВНИМАНИЕ! ⚠️\n\n' +
+        'Вы уверены, что хотите удалить ВСЕ пожелания сотрудников?\n' +
+        'Данные будут удалены из Google таблицы и восстановить их будет нельзя!\n\n' +
+        'Рекомендуется перед сбросом скачать Excel-файл для архива.\n\n' +
+        'Нажмите "ОК" для подтверждения сброса.'
+    );
+    
+    if (!confirmReset) return;
+    
+    // Второе подтверждение
+    const doubleConfirm = confirm(
+        'Последнее предупреждение!\n\n' +
+        'Все данные будут удалены навсегда из Google таблицы.\n' +
+        'Продолжить?'
+    );
+    
+    if (!doubleConfirm) return;
+    
+    // Удаляем данные в Google таблице
+    try {
+        tableDiv.innerHTML = '<p>Удаление данных из Google...</p>';
+        
+        // Отправляем DELETE запрос
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'DELETE',
+            mode: 'no-cors'
+        });
+        
+        console.log('Данные удалены из Google');
+    } catch (error) {
+        console.error('Ошибка при удалении из Google:', error);
     }
+    
+    // Очищаем локальные данные
+    allEmployees = [];
+    saveDataToStorage();
+    
+    // Перезагружаем таблицу
+    await renderAdminTable();
+    
+    alert('✅ Все данные успешно удалены!');
 }
-
 loadData();

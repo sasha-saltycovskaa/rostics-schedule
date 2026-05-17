@@ -4,7 +4,7 @@ let allEmployees = [];
 let currentEmployee = null;
 
 // Google Script URL (ЗАМЕНИТЕ НА ВАШ!)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbySFHL-kpw9cKLKro4lXk0NRtX7W4azTQ7mopurwTNvSCOo8DUNaa_RyUF7zQf3Ow12/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxG3D_sqpcjSkAdw2K5T0IFbPcNz9dAT8pC6AQ8Qx7iiyN1gkaDqrxq-HwJo8f3bX6Q/exec';
 
 // Логин и пароль администратора
 const ADMIN_LOGIN = 'admin12';

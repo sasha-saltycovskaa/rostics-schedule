@@ -4,7 +4,7 @@ let allEmployees = [];
 let currentEmployee = null;
 
 // Google Script URL (ЗАМЕНИТЕ НА ВАШ!)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxG3D_sqpcjSkAdw2K5T0IFbPcNz9dAT8pC6AQ8Qx7iiyN1gkaDqrxq-HwJo8f3bX6Q/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbySFHL-kpw9cKLKro4lXk0NRtX7W4azTQ7mopurwTNvSCOo8DUNaa_RyUF7zQf3Ow12/exec';
 
 // Логин и пароль администратора
 const ADMIN_LOGIN = 'admin12';
@@ -144,14 +144,20 @@ const adminBtn = document.getElementById('adminBtn');
 const closeBtn = document.querySelector('.close');
 
 if (adminBtn) {
-    adminBtn.onclick = () => modal.style.display = 'block';
+    adminBtn.onclick = function() {
+        modal.style.display = 'block';
+    };
 }
 if (closeBtn) {
-    closeBtn.onclick = () => modal.style.display = 'none';
+    closeBtn.onclick = function() {
+        modal.style.display = 'none';
+    };
 }
-window.onclick = (event) => {
-    if (event.target == modal) modal.style.display = 'none';
-}
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    };
+};
 
 function checkAdminLogin() {
     const login = document.getElementById('adminLogin').value;
@@ -200,10 +206,9 @@ async function renderAdminTable() {
             }
             html += '</tr>';
         }
-        html += '</tbody></table>';
+        html += '</tbody><tr>';
         tableDiv.innerHTML = html;
         
-        // Обновляем локальный массив
         allEmployees = [];
         for (let row of rows) {
             const schedule = {};
@@ -258,40 +263,5 @@ function resetAllData() {
         alert('✅ Данные на сайте очищены.\n\nНе забудьте вручную очистить Google таблицу!');
     }
 }
-    
-    if (!confirmReset) return;
-    
-    // Второе подтверждение
-    const doubleConfirm = confirm(
-        'Последнее предупреждение!\n\n' +
-        'Все данные будут удалены навсегда из Google таблицы.\n' +
-        'Продолжить?'
-    );
-    
-    if (!doubleConfirm) return;
-    
-    // Удаляем данные в Google таблице
-    try {
-        tableDiv.innerHTML = '<p>Удаление данных из Google...</p>';
-        
-        // Отправляем DELETE запрос
-        await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'DELETE',
-            mode: 'no-cors'
-        });
-        
-        console.log('Данные удалены из Google');
-    } catch (error) {
-        console.error('Ошибка при удалении из Google:', error);
-    }
-    
-    // Очищаем локальные данные
-    allEmployees = [];
-    saveDataToStorage();
-    
-    // Перезагружаем таблицу
-    await renderAdminTable();
-    
-    alert('✅ Все данные успешно удалены!');
-}
+
 loadData();

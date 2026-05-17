@@ -250,15 +250,14 @@ function printTable() {
     window.print();
 }
 
-async function resetAllData() {
-    // Первое подтверждение
-    const confirmReset = confirm(
-        '⚠️ ВНИМАНИЕ! ⚠️\n\n' +
-        'Вы уверены, что хотите удалить ВСЕ пожелания сотрудников?\n' +
-        'Данные будут удалены из Google таблицы и восстановить их будет нельзя!\n\n' +
-        'Рекомендуется перед сбросом скачать Excel-файл для архива.\n\n' +
-        'Нажмите "ОК" для подтверждения сброса.'
-    );
+function resetAllData() {
+    if (confirm('⚠️ УДАЛИТЬ ДАННЫЕ?\n\nЭто удалит данные ТОЛЬКО из таблицы на сайте.\n\nGoogle таблицу нужно очистить отдельно!')) {
+        allEmployees = [];
+        saveDataToStorage();
+        renderAdminTable();
+        alert('✅ Данные на сайте очищены.\n\nНе забудьте вручную очистить Google таблицу!');
+    }
+}
     
     if (!confirmReset) return;
     
